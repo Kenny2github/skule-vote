@@ -96,7 +96,10 @@ class Election(models.Model):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        super(Election, self).save(force_insert, force_update, using, update_fields)
+        super(Election, self).save(
+            force_insert=force_insert, force_update=force_update,
+            using=using, update_fields=update_fields
+        )
 
         data = {
             "name": "Reopen Nominations",
