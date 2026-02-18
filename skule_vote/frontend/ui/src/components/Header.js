@@ -63,9 +63,7 @@ const Header = ({ isDark, toggleDark }) => {
     </Button>
   );
 
-  const isLocal =
-    (process?.env?.REACT_APP_DEV_SERVER_URL ?? "").includes("localhost") ||
-    (process?.env?.REACT_APP_DEV_SERVER_URL ?? "").includes("127.0.0.1");
+  const isLocal = window.location.hostname.match(/localhost|127\.0\.0\.1/);
 
   return (
     <AppBar
