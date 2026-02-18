@@ -2,7 +2,7 @@ version: '3'
 
 services:
     postgres:
-        image: postgres:12.2
+        image: postgres:18.1
         container_name: skule-vote_postgres
         ports:
             - 5432:5432
@@ -10,7 +10,7 @@ services:
             - POSTGRES_DB=skule_vote
             - POSTGRES_HOST_AUTH_METHOD=trust
         volumes:
-            - skule-vote_postgres-data:/var/lib/postgresql/data
+            - skule-vote_postgres-data:/var/lib/postgresql/18/docker
 
 volumes:
     skule-vote_postgres-data:
