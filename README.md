@@ -17,7 +17,7 @@ The repository hosting the code for the [Skule Voting](https://vote.skule.ca) we
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.13 or higher
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
@@ -32,7 +32,7 @@ For local development, create a Python virtual environment.
 We recommend you use [Anaconda](https://www.anaconda.com/products/individual) (or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)), as it makes managing virtual environments with different Python versions easier:
 
 ```bash
-$ conda create -n skule_vote python=3.9
+$ conda create -n skule_vote python=3.13
 ```
 
 This will create a new conda environment named `skule_vote` (you may choose a different name). Then, activate the environment:
@@ -43,10 +43,10 @@ $ conda activate skule_vote
 
 #### venv
 
-Alternatively, you can use [venv](https://docs.python.org/3/library/venv.html) provided under the standard library, but note that you must already have Python 3.9 installed first:
+Alternatively, you can use [venv](https://docs.python.org/3/library/venv.html) provided under the standard library, but note that you must already have Python 3.13 installed first:
 
 ```bash
-$ python3.9 -m venv venv
+$ python3.13 -m venv venv
 ```
 
 How you activate the environment depends on your operating system, consult [the docs](https://docs.python.org/3/library/venv.html) for further information.
@@ -109,7 +109,7 @@ A note about security: by default, the Postgres service is run with [trust authe
 
 #### Database migrations
 
-[Migrations](https://docs.djangoproject.com/en/3.0/topics/migrations/) are Django's way of managing changes to the database structure. Before you run the development server, you should run any unapplied migrations; this should be done every time you pull an update to the codebase, not just the first time you set up:
+[Migrations](https://docs.djangoproject.com/en/6.0/topics/migrations/) are Django's way of managing changes to the database structure. Before you run the development server, you should run any unapplied migrations; this should be done every time you pull an update to the codebase, not just the first time you set up:
 
 ```bash
 $ cd skule_vote
@@ -176,7 +176,7 @@ Additionally, if you go to the admin site and click on `Election Sessions` on th
 
 ## Notes on Committing Backend Changes
 
-To run all unit tests, run `python manage.py test`. You can learn more about writing and running unit tests in [Django documentation](https://docs.djangoproject.com/en/3.2/topics/testing/overview/).
+To run all unit tests, run `python manage.py test`. You can learn more about writing and running unit tests in [Django documentation](https://docs.djangoproject.com/en/6.0/topics/testing/overview/).
 
 All python code is formatted using [Black](https://github.com/psf/black). To format your code, simply run `black .` in the project root. To format a specific file, run `black FILE.py`.
 
