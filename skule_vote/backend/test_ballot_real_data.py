@@ -120,7 +120,7 @@ class BallotRealDataTestCase(SetupMixin, TestCase):
         self._create_officer(self.election_session, 1)
         officer = Election.objects.filter(category="officer")[0]
 
-        with open("./backend/test_data/2022_Valedictorian.txt", "r") as f:
+        with open("./backend/test_data/2022_Valedictorian.json", "r") as f:
             lines = f.read()
             election = json.loads(lines)
 
@@ -198,7 +198,7 @@ class BallotRealDataTestCase(SetupMixin, TestCase):
         self._create_officer(self.election_session, 1)
         officer = Election.objects.filter(category="officer")[0]
 
-        with open("./backend/test_data/2021_VPSL_post.txt", "r") as f:
+        with open("./backend/test_data/2021_VPSL_post.json", "r") as f:
             lines = f.read()
             election = json.loads(lines)
 
@@ -237,7 +237,7 @@ class BallotRealDataTestCase(SetupMixin, TestCase):
         self._create_officer(self.election_session, 1)
         officer = Election.objects.filter(category="officer")[0]
 
-        with open("./backend/test_data/2021_VPSL_pre.txt", "r") as f:
+        with open("./backend/test_data/2021_VPSL_pre.json", "r") as f:
             lines = f.read()
             election = json.loads(lines)
 
