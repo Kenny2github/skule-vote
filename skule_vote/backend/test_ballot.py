@@ -1,3 +1,4 @@
+from decimal import Decimal as _D
 from django.test import TestCase
 
 from backend.ballot import calculate_results
@@ -91,7 +92,7 @@ class BallotTestCase(SetupMixin, TestCase):
         ballot_dict = BallotSerializer(Ballot.objects.all())
 
         # Ballot dict gives us Candidate objects, we need indicies from the choices list.
-        ballots_formatted = ballot_dict.map_candidates_in_ballots_to_choices(
+        ballots_formatted = ballot_dict.map_candidates_in_ballots_to_choices( # type: ignore
             ballots=ballot_dict.data, choices=choices
         )
 
@@ -107,7 +108,7 @@ class BallotTestCase(SetupMixin, TestCase):
         # Return calculated results
         return calculate_results(
             ballots=ballots_formatted,
-            choices=choices_dict,
+            choices=choices_dict, # type: ignore
             numSeats=election.seats_available,
         )
 
@@ -164,14 +165,14 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["winners"], [candidate.name])
         self.assertEqual(results["rounds"][0][candidate.name], 2)
         self.assertEqual(results["rounds"][0][ron.name], 1)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(referendum.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
 
         # Total votes is len(voters) - NUM_SPOILED because
         # 1. We consider rankings of multiple candidates for the *same* position
         #   as a single vote (i.e., voters[0] ranking two candidates is 1 vote.
         # 2. We don't consider spoiled ballots as votes
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 1: YES/NO election with ron winning
     def test_one_candidate_no_tie_ron_wins(self):
@@ -198,9 +199,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["winners"], [ron.name])
         self.assertEqual(results["rounds"][0][candidate.name], 1)
         self.assertEqual(results["rounds"][0][ron.name], 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(referendum.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 1: YES/NO election with a tie
     def test_one_candidate_tie(self):
@@ -228,9 +229,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["winners"], ["NO (TIE)"])
         self.assertEqual(results["rounds"][0][candidate.name], 2)
         self.assertEqual(results["rounds"][0][ron.name], 2)
-        self.assertEqual(results["quota"], 3)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(referendum.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 1: YES/NO election with one ballot having an error
     def test_one_candidate_ballot_errored(self):
@@ -258,9 +259,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["winners"], [ron.name])
         self.assertEqual(results["rounds"][0][candidate.name], 1 - NUM_ERRORED)
         self.assertEqual(results["rounds"][0][ron.name], 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED - NUM_ERRORED)/(referendum.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED + NUM_ERRORED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED - NUM_ERRORED)
 
     # CASE 2: 1 seat election with winner determined in first round
     def test_one_seat_winner_one_round(self):
@@ -365,9 +366,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][0][candidate2.name], 1)
         self.assertEqual(results["rounds"][0][ron.name], 4)
         self.assertEqual(len(results["rounds"]), 1)
-        self.assertEqual(results["quota"], 7)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
         self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
-        self.assertEqual(results["totalVotes"], NUM_VOTERS - NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], NUM_VOTERS - NUM_SPOILED)
 
     # CASE 2: 1 seat election with winner determined in first round + one ballot that has an error
     def test_one_seat_winner_one_round_errored(self):
@@ -473,7 +474,7 @@ class BallotTestCase(SetupMixin, TestCase):
         ballot_dict = BallotSerializer(Ballot.objects.all())
 
         # Ballot dict gives us Candidate objects, we need indicies from the choices list.
-        ballots_formatted = ballot_dict.map_candidates_in_ballots_to_choices(
+        ballots_formatted = ballot_dict.map_candidates_in_ballots_to_choices( # type: ignore
             ballots=ballot_dict.data, choices=choices
         )
 
@@ -487,7 +488,7 @@ class BallotTestCase(SetupMixin, TestCase):
 
         results = calculate_results(
             ballots=ballots_formatted,
-            choices=choices_dict,
+            choices=choices_dict, # type: ignore
             numSeats=officer.seats_available,
         )
 
@@ -496,9 +497,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][0][candidate2.name], 1 - NUM_ERRORED)
         self.assertEqual(results["rounds"][0][ron.name], 4)
         self.assertEqual(len(results["rounds"]), 1)
-        self.assertEqual(results["quota"], 7)
-        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
-        self.assertEqual(results["totalVotes"], NUM_VOTERS - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED - NUM_ERRORED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED + NUM_ERRORED)
+        self.assertEqual(results["totalVotes"][0], NUM_VOTERS - NUM_SPOILED - NUM_ERRORED)
 
     # CASE 2: 1 seat election with winner determined after two rounds
     def test_one_seat_winner_two_rounds(self):
@@ -635,9 +636,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate3.name], 3)
         self.assertEqual(results["rounds"][1][ron.name], 2)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 7)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
         self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
-        self.assertEqual(results["totalVotes"], NUM_VOTERS - NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], NUM_VOTERS - NUM_SPOILED)
 
     # CASE 2: 1 seat election with winner determined after two rounds with some spoiled ballots
     def test_one_seat_winner_two_rounds_spoiled_ballots(self):
@@ -795,9 +796,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate3.name], 3)
         self.assertEqual(results["rounds"][1][ron.name], 2)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 7)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
         self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
-        self.assertEqual(results["totalVotes"], NUM_VOTERS - NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], NUM_VOTERS - NUM_SPOILED)
 
     # CASE 2: 1 seat election with no winners because nothing meets quota
     def test_one_seat_no_winner(self):
@@ -921,9 +922,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][2][candidate3.name], 0)
         self.assertEqual(results["rounds"][2][ron.name], 3)
         self.assertEqual(len(results["rounds"]), 3)
-        self.assertEqual(results["quota"], 7)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
         self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
-        self.assertEqual(results["totalVotes"], NUM_VOTERS - NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], NUM_VOTERS - NUM_SPOILED)
 
     # CASE 2: 1 seat election with winner determined in first round w/ disqualification
     def test_one_seat_two_candidates_winner_with_and_without_dq(self):
@@ -1051,12 +1052,12 @@ class BallotTestCase(SetupMixin, TestCase):
             election_results["results_without_dq"]["rounds"][0][ron.name], 4
         )
         self.assertEqual(len(election_results["results_without_dq"]["rounds"]), 1)
-        self.assertEqual(election_results["results_without_dq"]["quota"], 7)
+        self.assertEqual(election_results["results_without_dq"]["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
         self.assertEqual(
             election_results["results_without_dq"]["spoiledBallots"], NUM_SPOILED
         )
         self.assertEqual(
-            election_results["results_without_dq"]["totalVotes"],
+            election_results["results_without_dq"]["totalVotes"][0],
             NUM_VOTERS - NUM_SPOILED,
         )
 
@@ -1067,12 +1068,12 @@ class BallotTestCase(SetupMixin, TestCase):
             election_results["results_with_dq"]["rounds"][0][candidate2.name], 5
         )
         self.assertEqual(len(election_results["results_with_dq"]["rounds"]), 1)
-        self.assertEqual(election_results["results_with_dq"]["quota"], 7)
+        self.assertEqual(election_results["results_with_dq"]["quota"][0], 7)
         self.assertEqual(
             election_results["results_with_dq"]["spoiledBallots"], NUM_SPOILED
         )
         self.assertEqual(
-            election_results["results_with_dq"]["totalVotes"], NUM_VOTERS - NUM_SPOILED
+            election_results["results_with_dq"]["totalVotes"][0], NUM_VOTERS - NUM_SPOILED
         )
 
     # CASE 2: 1 seat election with winner determined in first round  w/ disqualification
@@ -1240,12 +1241,12 @@ class BallotTestCase(SetupMixin, TestCase):
             election_results["results_without_dq"]["rounds"][2][ron.name], 5
         )
         self.assertEqual(len(election_results["results_without_dq"]["rounds"]), 3)
-        self.assertEqual(election_results["results_without_dq"]["quota"], 9)
+        self.assertEqual(election_results["results_without_dq"]["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
         self.assertEqual(
             election_results["results_without_dq"]["spoiledBallots"], NUM_SPOILED
         )
         self.assertEqual(
-            election_results["results_without_dq"]["totalVotes"],
+            election_results["results_without_dq"]["totalVotes"][0],
             NUM_VOTERS - NUM_SPOILED,
         )
 
@@ -1261,12 +1262,12 @@ class BallotTestCase(SetupMixin, TestCase):
             election_results["results_with_dq"]["rounds"][1][candidate3.name], 0
         )
         self.assertEqual(len(election_results["results_with_dq"]["rounds"]), 2)
-        self.assertEqual(election_results["results_with_dq"]["quota"], 9)
+        self.assertEqual(election_results["results_with_dq"]["quota"][0], 9)
         self.assertEqual(
             election_results["results_with_dq"]["spoiledBallots"], NUM_SPOILED
         )
         self.assertEqual(
-            election_results["results_with_dq"]["totalVotes"], NUM_VOTERS - NUM_SPOILED
+            election_results["results_with_dq"]["totalVotes"][0], NUM_VOTERS - NUM_SPOILED
         )
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, no one wins
@@ -1301,9 +1302,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][0][candidate2.name], 1)
         self.assertEqual(results["rounds"][0][ron.name], 1)
         self.assertEqual(len(results["rounds"]), 1)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 5 candidates and 2 seats
     def test_two_seats_five_candidates(self):
@@ -1375,9 +1376,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][3][candidate4.name], 0)
         self.assertEqual(results["rounds"][3][ron.name], 1)
         self.assertEqual(len(results["rounds"]), 4)
-        self.assertEqual(results["quota"], 3)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 5 candidates and 2 seats
     def test_two_seats_five_candidates_var_2(self):
@@ -1439,9 +1440,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][3][candidate4.name], 0)
         self.assertEqual(results["rounds"][3][ron.name], 1)
         self.assertEqual(len(results["rounds"]), 4)
-        self.assertEqual(results["quota"], 3)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 5 candidates and 2 seats, has ties in elimination and winners
     # for backwardsEliminationProcess to solve
@@ -1482,7 +1483,7 @@ class BallotTestCase(SetupMixin, TestCase):
         )
 
         results = self._create_results(ballots, choices, officer)
-        self.assertEqual(results["winners"], [candidate2.name, candidate3.name]),
+        self.assertEqual(results["winners"], [candidate2.name, candidate3.name])
         self.assertEqual(results["rounds"][0][candidate1.name], 2)
         self.assertEqual(results["rounds"][0][candidate2.name], 2)
         self.assertEqual(results["rounds"][0][candidate3.name], 2)
@@ -1499,9 +1500,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][2][candidate4.name], 2)
         self.assertEqual(results["rounds"][2][ron.name], 0)
         self.assertEqual(len(results["rounds"]), 3)
-        self.assertEqual(results["quota"], 3)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 4 candidates and 2 seats, has ties in elimination
     # for backwardsEliminationProcess to solve in the second round
@@ -1546,7 +1547,7 @@ class BallotTestCase(SetupMixin, TestCase):
         )
 
         results = self._create_results(ballots, choices, officer)
-        self.assertEqual(results["winners"], [candidate1.name, ron.name]),
+        self.assertEqual(results["winners"], [candidate1.name, ron.name])
         self.assertEqual(results["rounds"][0][candidate1.name], 6)
         self.assertEqual(results["rounds"][0][candidate2.name], 4)
         self.assertEqual(results["rounds"][0][candidate3.name], 3)
@@ -1560,9 +1561,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][2][candidate3.name], 0)
         self.assertEqual(results["rounds"][2][ron.name], 5)
         self.assertEqual(len(results["rounds"]), 3)
-        self.assertEqual(results["quota"], 5)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 5 candidates and 2 seats, has ties in a winner
     # for backwardsEliminationProcess to solve in the third round
@@ -1612,7 +1613,7 @@ class BallotTestCase(SetupMixin, TestCase):
         )
 
         results = self._create_results(ballots, choices, officer)
-        self.assertEqual(results["winners"], [candidate3.name, candidate2.name]),
+        self.assertEqual(results["winners"], [candidate3.name, candidate2.name])
         self.assertEqual(results["rounds"][0][candidate1.name], 4)
         self.assertEqual(results["rounds"][0][candidate2.name], 5)
         self.assertEqual(results["rounds"][0][candidate3.name], 6)
@@ -1634,9 +1635,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][3][candidate4.name], 0)
         self.assertEqual(results["rounds"][3][ron.name], 0.75)
         self.assertEqual(len(results["rounds"]), 4)
-        self.assertEqual(results["quota"], 7)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, 1 candidate wins
     def test_two_seats_three_candidates_one_winner(self):
@@ -1674,9 +1675,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate2.name], 1 / 3)
         self.assertEqual(results["rounds"][1][ron.name], 4 / 3)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, ron wins first
     def test_two_seats_three_candidates_one_winner_ron(self):
@@ -1711,9 +1712,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][0][candidate2.name], 0)
         self.assertEqual(results["rounds"][0][ron.name], 4)
         self.assertEqual(len(results["rounds"]), 1)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, a ballot has an errors
     def test_two_seats_three_candidates_ballot_errored(self):
@@ -1750,9 +1751,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate2.name], 0)
         self.assertEqual(results["rounds"][1][ron.name], 1)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED - NUM_ERRORED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED + NUM_ERRORED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED - NUM_ERRORED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, 2 candidates win
     def test_two_seats_three_candidates_two_winners(self):
@@ -1789,9 +1790,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate2.name], 2)
         self.assertEqual(results["rounds"][1][ron.name], 0)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, 1 candidate and ron win
     def test_two_seats_three_candidates_two_winners_ron(self):
@@ -1828,9 +1829,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate2.name], 0)
         self.assertEqual(results["rounds"][1][ron.name], 2)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, 2 candidates win by a tie
     def test_two_seats_three_candidates_two_winners_tie(self):
@@ -1864,9 +1865,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][0][candidate2.name], 2)
         self.assertEqual(results["rounds"][0][ron.name], 0)
         self.assertEqual(len(results["rounds"]), 1)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 2 seats, 1 candidate and ron win by a tie
     def test_two_seats_three_candidates_two_winners_tie_ron(self):
@@ -1900,9 +1901,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][0][candidate2.name], 0)
         self.assertEqual(results["rounds"][0][ron.name], 2)
         self.assertEqual(len(results["rounds"]), 1)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 4 candidates and 3 seats, 2 candidates win
     def test_three_seats_four_candidates_two_winners(self):
@@ -1948,9 +1949,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][2][candidate3.name], 1)
         self.assertEqual(results["rounds"][2][ron.name], 0)
         self.assertEqual(len(results["rounds"]), 3)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 4 candidates and 3 seats, 1 candidate and ron win
     def test_three_seats_four_candidates_two_winners_ron(self):
@@ -1992,9 +1993,9 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][1][candidate3.name], 0)
         self.assertEqual(results["rounds"][1][ron.name], 2.5)
         self.assertEqual(len(results["rounds"]), 2)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)
 
     # CASE 3: Multi-seat election with 3 candidates and 3 seats, 2 candidates win (not ron)
     def test_three_seats_three_candidates_two_winners_no_ron(self):
@@ -2036,6 +2037,6 @@ class BallotTestCase(SetupMixin, TestCase):
         self.assertEqual(results["rounds"][2][candidate2.name], 0)
         self.assertEqual(results["rounds"][2][ron.name], 1 / 3)
         self.assertEqual(len(results["rounds"]), 3)
-        self.assertEqual(results["quota"], 2)
-        self.assertEqual(results["spoiledBallots"], 0)
-        self.assertEqual(results["totalVotes"], len(voters) - NUM_SPOILED)
+        self.assertEqual(results["quota"][0], _D(NUM_VOTERS - NUM_SPOILED)/(officer.seats_available + 1))
+        self.assertEqual(results["spoiledBallots"], NUM_SPOILED)
+        self.assertEqual(results["totalVotes"][0], len(voters) - NUM_SPOILED)

@@ -176,7 +176,7 @@ const Selector = ({ i, candidates, ranking, isReferendum, changeRanking }) => {
       key={i}
       error={duplicateSelected || outOfOrder}
     >
-      <InputLabel id={`rank-${i}-label`} color="secondary">
+      <InputLabel id={`rank-${i}-label`} color="secondary" shrink>
         {label}
       </InputLabel>
       <Select
@@ -186,9 +186,10 @@ const Selector = ({ i, candidates, ranking, isReferendum, changeRanking }) => {
         onChange={handleRankOnchange}
         label={label}
         color="secondary"
+        displayEmpty
       >
         <MenuItem value="" key="-">
-          -
+          Spoil Ballot
         </MenuItem>
         {candidates.map((candidate) => (
           <MenuItem value={candidate.id} key={candidate.id}>

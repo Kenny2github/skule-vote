@@ -188,9 +188,9 @@ class BallotRealDataTestCase(SetupMixin, TestCase):
 
         self.assertEqual(len(results["rounds"]), 6)
 
-        self.assertEqual(results["quota"], 106)
+        self.assertEqual(results["quota"][0], 105)
         self.assertEqual(results["spoiledBallots"], 1)
-        self.assertEqual(results["totalVotes"], 210)
+        self.assertEqual(results["totalVotes"][0], 210)
         self.assertEqual(len(voters), 210 + 1)
 
     def test_vpsl_post_2021(self):
@@ -227,9 +227,9 @@ class BallotRealDataTestCase(SetupMixin, TestCase):
 
         self.assertEqual(len(results["rounds"]), 3)
 
-        self.assertEqual(results["quota"], 184)
+        self.assertEqual(results["quota"][0], 183)
         self.assertEqual(results["spoiledBallots"], 75)
-        self.assertEqual(results["totalVotes"], 366)
+        self.assertEqual(results["totalVotes"][0], 366)
         self.assertEqual(len(voters), 366 + 75)
 
     def test_vpsl_pre_2021(self):
@@ -266,7 +266,7 @@ class BallotRealDataTestCase(SetupMixin, TestCase):
 
         self.assertEqual(len(results["rounds"]), 3)
 
-        self.assertEqual(results["quota"], 217)
+        self.assertEqual(results["quota"][0], 216)
         self.assertEqual(results["spoiledBallots"], 9)
-        self.assertEqual(results["totalVotes"], 432)
+        self.assertEqual(results["totalVotes"][0], 432)
         self.assertEqual(len(voters), 432 + 9)
